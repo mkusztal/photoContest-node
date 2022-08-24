@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const voterSchema = new mongoose.Schema({
-  user: { type: String, require: true },
-  votes: { type: Number, required: true },
+  userIp: { type: String, require: true },
+  votes: { type: Array, required: true },
 });
 
 module.exports = mongoose.model('Voter', voterSchema);

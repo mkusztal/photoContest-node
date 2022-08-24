@@ -51,27 +51,35 @@ exports.loadAll = async (req, res) => {
 
 exports.vote = async (req, res) => {
   try {
-    const clientIP = requestIp.getClientIp(req);
-    const findUser = await Voter.findOne({ user: clientIP });
+    const clientIp = requestIp.getClientIp(req);
+    const findUser = await Voter.findOne({ userIp: clientIp });
     const photoToUpdate = await Photo.findOne({ _id: req.params.id });
 
     if (findUser) {
       const findVote = findUser.votes.includes(photoToUpdate._id);
       if (findVote) {
-        res.status(500).json({ message: 'User voted' });
-      } else {
-        photoToUpdate.votes++;
-        await photoToUpdate.save();
-        findUser.votes.push(photoToUpdate._id);
-        await findUser.save();
-        res.send({ message: 'OK' });
+        return res.status(404).json({ message: 'User voted' });
       }
-    } else {
-      const newVoter = new Voter({ user: clientIP, votes: photoToUpdate._id });
-      await newVoter.save();
-      res.send({ message: 'OK' });
+      photoToUpdate.votes++;
+      await photoToUpdate.save();
+      findUser.votes.push(photoToUpdate._id);
+      await findUser.save();
+      return res.send({ message: 'OK' });
     }
+    const newVoter = new Voter({
+      userIp: clientIp,
+      votes: [photoToUpdate._id],
+    });
+    await newVoter.save();
+    photoToUpdate.votes++;
+    await photoToUpdate.save();
+    res.send({ message: 'OK' });
   } catch (err) {
     res.status(500).json(err);
   }
 };
+
+// errors: {votes: {stringValue: ""63037b7f6c63292703b99e05"", valueType: "ObjectID", kind: "Number",…}}
+// message: "Voter validation failed: votes: Cast to Number failed for value \"63037b7f6c63292703b99e05\" (type ObjectID) at path \"votes\""
+// name: "ValidationError"
+// _message: "Voter validation failed"
