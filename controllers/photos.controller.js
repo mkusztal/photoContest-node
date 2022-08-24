@@ -56,9 +56,9 @@ exports.vote = async (req, res) => {
     const photoToUpdate = await Photo.findOne({ _id: req.params.id });
 
     if (findUser) {
-      if (findUser.votes.includes(photoToUpdate._id)) {
-        console.log('User voted ');
-        res.status(500).json(err);
+      const findVote = findUser.votes.includes(photoToUpdate._id);
+      if (findVote) {
+        res.status(500).json({ message: 'User voted' });
       } else {
         photoToUpdate.votes++;
         await photoToUpdate.save();
@@ -69,8 +69,6 @@ exports.vote = async (req, res) => {
     } else {
       const newVoter = new Voter({ user: clientIP, votes: photoToUpdate._id });
       await newVoter.save();
-      photoToUpdate.votes++;
-      await photoToUpdate.save();
       res.send({ message: 'OK' });
     }
   } catch (err) {
